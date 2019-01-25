@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TodoListService
 {
@@ -30,6 +31,14 @@ namespace TodoListService
                 sharedOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddAzureAdBearer(options => Configuration.Bind("AzureAd", options));
+            services.AddAuthorization(o =>
+            {
+                const string ScopeClaimType = "http://schemas.microsoft.com/identity/claims/scope";
+                o.DefaultPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .RequireClaim(ScopeClaimType, "user_impersonation")
+                    .Build();
+            });
 
             services.AddMvc();
         }
